@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
+    <title>bimfishModeloSDK</title>
+    <script src="lib/lodash.min.js"></script>
+    <script src="lib/three.min.js"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      body {
+        display: flex;
+      }
+
+      .wrapper label {
+        margin: 0 0 0.28571429rem 0;
+        color: rgba(0, 0, 0, 0.87);
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .wrapper-right label {
+        color: rgba(0, 0, 0, 0.87);
+        font-size: 1rem;
+        font-weight: 700;
+        position: fixed;
+        top: 0.68571429rem;
+        right: 1rem;
+        margin: 0;
+        padding: 0;
+      }
+
+      #bimfishModeloApp {
+        width: calc(100vw);
+        height: calc(100vh);
+      }
+      .flex {
+        margin: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        height: calc(100vh);
+        overflow-y: auto;
+      }
+
+      .flex button {
+        flex: none;
+        /*margin: 3px 5px;*/
+      }
+
+      #cubeBox {
+        width: 50px;
+        height: 50px;
+        /* margin: 100px auto; */
+        background: #ccc;
+        position: relative;
+        /* transform:perspective(800px) rotateY(-60deg) rotateX(45deg); */
+        transform-style: preserve-3d;
+        position: fixed;
+        right: 50px;
+        top: 50px;
+      }
+      #cubeBox div {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-size: cover;
+        -webkit-box-shadow: 0 0 25px #5fbcff;
+        opacity: 0.8;
+      }
+      .front {
+        transform: translateZ(25px);
+        background: url(images/viewCube/a5.png);
+      }
+      .back {
+        transform: translateZ(-25px);
+        background: url(images/viewCube/a1.png);
+      }
+      .left {
+        transform: translateX(-25px) rotateY(90deg);
+        background: url(images/viewCube/a2.png);
+      }
+      .right {
+        transform: translateX(25px) rotateY(90deg);
+        background: url(images/viewCube/a3.png);
+      }
+      .top {
+        transform: translateY(-25px) rotateX(90deg);
+        background: url(images/viewCube/a4.png);
+      }
+      .bottom {
+        transform: translateY(25px) rotateX(90deg);
+        background: url(images/viewCube/a8.png);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main">
+      <div class="wrapper-right">
+        <label id="progress">Loading: 0</label>
+      </div>
+      <div class="bimfishModeloApp" id="bimfishModeloApp"></div>
+    </div>
+
+    <div id="cubeBox">
+      <div class="front"></div>
+      <div class="back"></div>
+      <div class="top"></div>
+      <div class="bottom"></div>
+      <div class="left"></div>
+      <div class="right"></div>
+    </div>
+
+    <div class="flex">
+      <button onclick="destroy()">销毁场景</button>
+      <button onclick="loadModel()">加载数据</button>
+
+      <button onclick="getLocal()">获取文件</button>
+
+      <button onclick="mousePickPosition()">鼠标点击坐标</button>
+
+      <button onclick="startExplode()">模型分解</button>
+      <button onclick="endExplode()">模型恢复</button>
+
+      <button onclick="setModelVisible(false)">隐藏模型</button>
+      <button onclick="setModelVisible(true)">显示模型</button>
+
+      <button onclick="pickOnlySelect()">PICK仅选中</button>
+      <button onclick="pickOnlyUnSelect()">取消PICK仅选中</button>
+
+      <button onclick="pickElement()">选中构件</button>
+      <button onclick="clearPickElement()">取消选中构件</button>
+      <button onclick="regionSelect()">框选</button>
+      <button onclick="regionUnSelect()">取消框选</button>
+      <button onclick="getSelectElements()">获取选中构件</button>
+
+      <button onclick="setElementsVisible(false)">构件隐藏</button>
+      <button onclick="setElementsVisible(true)">构件显示</button>
+
+      <button onclick="setElementsColor()">构件上色</button>
+      <button onclick="clearElementsColor()">构件颜色还原</button>
+
+      <button onclick="getElementsProperties()">获取构件详情</button>
+
+      <button onclick="startModelCompare()">开始模型对比</button>
+      <button onclick="endModelCompare()">关闭模型对比</button>
+
+      <button onclick="screenCoordinate()">空间坐标转屏幕坐标</button>
+      <button onclick="spaceCoordinate()">屏幕坐标转空间坐标</button>
+
+      <button onclick="setMark(['NrMKNOYR+1/511365', 'NrMKNOYR+1/456685'],'safe')">添加标注</button>
+      <button onclick="setMark(['j1mZemYb+0/653850'],'progress')">添加标注2</button>
+      <button onclick="clearMark()">删除标注</button>
+      <button onclick="clearMark('safe')">删除指定标注</button>
+
+      <button onclick="startMeasure()">开始测量</button>
+      <button onclick="endMeasure()">结束测量</button>
+
+      <button onclick="switchView(4)">向上</button>
+      <button onclick="switchView()">默认</button>
+
+      <button onclick="dumpScreen()">截屏</button>
+
+      <button onclick="addText()">添加文字</button>
+      <button onclick="deleteTextById()">根据ID删除文字</button>
+      <button onclick="deleteTextByReg()">根据正则删除文字</button>
+      <button onclick="deleteAllText()">清空文字</button>
+
+      <button onclick="getCameraData()">获取相机信息</button>
+      <button onclick="setCameraData()">设置相机信息</button>
+
+      <button onclick="focusElements()">缩放至构件</button>
+
+      <button onclick="startCameraNavigator()">漫游</button>
+      <button onclick="stopNavigator()">停止漫游</button>
+
+      <button onclick="partElements()">隔离</button>
+      <button onclick="partEnableElements()">反向隔离</button>
+
+      <button onclick="shadowButton(true)">添加阴影</button>
+      <button onclick="shadowButton(false)">取消阴影</button>
+      <button onclick="ambientShadow(true)">环境阴影</button>
+      <button onclick="ambientShadow(false)">取消环境阴影</button>
+      <button onclick="specularShadow(true)">镜面反射</button>
+      <button onclick="specularShadow(false)">取消镜面反射</button>
+      <!-- <button onclick="shadowRange()">阴影范围纬度</button>
+      <button onclick="shadowRangeLong()">阴影范围经度</button>
+      <button onclick="shadowBrightness()">阴影亮度</button> -->
+
+      <button onclick="getMaterialNames()">获取材质名称</button>
+      <button onclick="changeMaterialColor()">改变材质颜色</button>
+
+      <button onclick="test()">test</button>
+      <!-- <button onclick="clearMaterialColor()">清除材质颜色</button> -->
+      <button onclick="changeMaterialImage()">改变材质贴图</button>
+      <button onclick="clearMaterialImage()">清除材质贴图</button>
+
+      <button onclick="partElements()">隔离</button>
+      <button onclick="partEnableElements()">反向隔离</button>
+
+      <button onclick="setSkyBox()">设置天空盒</button>
+      <button onclick="clearSkyBox()">取消天空盒</button>
+      <button onclick="setBackgroundColor()">设置背景颜色</button>
+
+      <button onclick="setElementsGlow()">设置构件发光</button>
+      <button onclick="clearAllElementsGlow()">清除所有发光</button>
+
+      <!--<button onclick="setTransparent()">设置透明</button>-->
+      <button onclick="setContourLine()">轮廓线</button>
+      <button onclick="setCoutourLineNone()">取消轮廓线</button>
+
+      <!--<button onclick="getElementCoordinates()">获取构件坐标</button>-->
+      <button onclick="setRibbon()">设置流动线</button>
+      <button onclick="clearRibbon()">取消流动线</button>
+
+      <button onclick="setCircle()">设置圆</button>
+      <button onclick="clearCircle()">清除圆</button>
+
+      <button onclick="setAnimatingStripe()">设置条纹线</button>
+      <button onclick="removeAnimatingStripeById()">删除条纹线</button>
+      <button onclick="clearAnimatingStripe()">清空条纹线</button>
+    </div>
+
+    <script src="https://s3.cn-north-1.amazonaws.com.cn/api-release.modeloapp.com/prod/modeloapi-2.8-lts.js"></script>
+    <script src="/assets/js/utils.js"></script>
+
+    <script type="text/javascript">
+      let bimfishModeloApp = null
+
+      window.onload = function() {
+        initModelo()
+        loadModel()
+      }
+
+      //模型初始化
+      function initModelo() {
+        bimfishModeloApp = new BimfishModelo('bimfishModeloApp')
+        bimfishModeloApp.init()
+      }
+
+      function destroy() {
+        bimfishModeloApp.destroy()
+      }
+
+      //加载模型
+      function loadModel() {
+        bimfishModeloApp.loadModel({
+          modelId: 'wrJeaR8j',
+          callback: modelId => {
+            console.log('modelId', modelId)
+          }
+        })
+      }
+
+      function getLocal() {
+        bimfishModeloApp.getLocal()
+      }
+
+      //鼠标点击获取坐标
+      function mousePickPosition() {
+        bimfishModeloApp.mousePickPosition((e, pos3D) => {
+          console.log(pos3D)
+        })
+      }
+
+      //开启模型分解
+      function startExplode() {
+        let elNames = bimfishModeloApp.viewer.getScene().getElementsNames()
+        bimfishModeloApp.startExplode(elNames, 3.0)
+      }
+
+      //关闭模型分解
+      function endExplode() {
+        bimfishModeloApp.endExplode()
+      }
+
+      //模型显示隐藏
+      function setModelVisible(visible) {
+        bimfishModeloApp.setModelVisible(visible)
+      }
+
+      //设置PICK仅选中，不拉近相机
+      function pickOnlySelect() {
+        bimfishModeloApp.pickOnlySelect()
+      }
+
+      //取消PICK仅选中
+      function pickOnlyUnSelect() {
+        bimfishModeloApp.pickOnlyUnSelect()
+      }
+
+      //选中构件
+      function pickElement() {
+        bimfishModeloApp.pickElement(['NrMKNOYR+1/518578', 'NrMKNOYR+0/746436'])
+      }
+
+      //取消选中构件
+      function clearPickElement() {
+        bimfishModeloApp.pickElement([])
+      }
+
+      //使用框选
+      function regionSelect() {
+        bimfishModeloApp.regionSelect()
+      }
+
+      //使用框选
+      function regionUnSelect() {
+        bimfishModeloApp.regionUnSelect()
+      }
+
+      //获取选中构件
+      function getSelectElements() {
+        let selectElements = bimfishModeloApp.getSelectElements()
+        console.log(selectElements)
+      }
+
+      //构件隐藏显示
+      function setElementsVisible(visible) {
+        bimfishModeloApp.setElementsVisible(['j1mZemYb+0/793112', 'j1mZemYb+0/500480'], visible)
+      }
+
+      //构件上色
+      function setElementsColor() {
+        bimfishModeloApp.setElementsColor(['j1mZemYb+0/1300944'], [255, 0, 0])
+      }
+
+      //构件颜色还原
+      function clearElementsColor() {
+        bimfishModeloApp.clearElementsColor(['j1mZemYb+0/1300944'])
+      }
+
+      //构件详情
+      function getElementsProperties() {
+        bimfishModeloApp.getElementsProperties(['j1mZemYb+0/1243816', 'j1mZemYb+0/1300944']).then(res => {
+          console.log(res)
+        })
+      }
+
+      //开启模型对比
+      function startModelCompare() {
+        bimfishModeloApp.startModelCompare('38g2LRY2', 'aYe3LarM')
+      }
+
+      //关闭模型对比
+      function endModelCompare() {
+        bimfishModeloApp.endModelCompare()
+      }
+
+      //空间坐标转屏幕坐标
+      function screenCoordinate() {
+        bimfishModeloApp.screenCoordinate([1, 0, 2])
+        console.log(bimfishModeloApp.screenCoordinate([1, 0, 2]))
+      }
+      //添加标注
+      function setMark(eleAry, type) {
+        bimfishModeloApp.setMark({
+          eleAry,
+          imgSrc: '../images/poi.png',
+          type,
+          callBack: e => {
+            console.log(e)
+          }
+        })
+      }
+
+      //清除标注
+      function clearMark(type) {
+        bimfishModeloApp.clearMark(type)
+      }
+
+      //屏幕坐标转空间坐标
+      function spaceCoordinate() {
+        bimfishModeloApp.spaceCoordinate([463.49407042376697, 241.96326902508736])
+        console.log(bimfishModeloApp.spaceCoordinate([463.49407042376697, 241.96326902508736]))
+      }
+
+      //开始测量
+      function startMeasure() {
+        // 测量类型支持
+        // bimfishModeloApp.MEASURETYPE.LINES
+        // bimfishModeloApp.MEASURETYPE.LINE
+        // bimfishModeloApp.MEASURETYPE.LINESTRIP
+        // bimfishModeloApp.MEASURETYPE.LINEFAN
+        // bimfishModeloApp.MEASURETYPE.ANGEL
+        // bimfishModeloApp.MEASURETYPE.AREA
+
+        bimfishModeloApp.startMeasure(bimfishModeloApp.MEASURETYPE.LINES)
+      }
+
+      //设置测量单位
+      function setMeasureUnit() {
+        // 测量类型支持
+        // bimfishModeloApp.MEASUREUNIT.M
+        // bimfishModeloApp.MEASUREUNIT.CM
+        // bimfishModeloApp.MEASUREUNIT.FEET
+        // bimfishModeloApp.MEASUREUNIT.INCHES
+
+        bimfishModeloApp.setMeasureUnit(bimfishModeloApp.MEASUREUNIT.M)
+      }
+
+      //结束测量
+      function endMeasure() {
+        bimfishModeloApp.endMeasure()
+      }
+
+      //切换视角
+      function switchView(direction) {
+        bimfishModeloApp.switchView(direction)
+      }
+
+      function addText() {
+        let options = {
+          id: 'text_1',
+          content: '55555',
+          translation: [20, 20, 30],
+          scaleArr: [10, 10, 10],
+          color: [0, 1, 0]
+        }
+        bimfishModeloApp.addText(options)
+      }
+
+      function deleteTextById() {
+        bimfishModeloApp.deleteTextById('text_1')
+      }
+
+      function deleteTextByReg() {
+        bimfishModeloApp.deleteTextByReg(/text_/)
+      }
+
+      function deleteAllText() {
+        bimfishModeloApp.deleteAllText()
+      }
+
+      function getCameraData() {
+        let cameraData = bimfishModeloApp.getCameraData()
+        console.log(cameraData)
+      }
+
+      function setCameraData() {
+        let data = {
+          at: [142.39291214942932, 98.91718339920044, 116.50262069702148],
+          distance: 643.2182396821688,
+          fov: 46,
+          phi: 0.17453292519943295,
+          theta: 5.497787143782138
+        }
+        bimfishModeloApp.setCameraData(data)
+      }
+
+      function focusElements() {
+        bimfishModeloApp.focusElements(elArray, ratio)
+      }
+
+      //截屏
+      function dumpScreen() {
+        console.log(bimfishModeloApp.dumpScreen())
+        // document.getElementById('dumpScreen').src = bimfishModeloApp.dumpScreen()
+      }
+
+      //漫游
+      function startCameraNavigator() {
+        bimfishModeloApp.startCameraNavigator(
+          [
+            [47.68290328979492, 32.377586364746094, 229.20518493652344],
+            [112.23026275634766, 43.972373962402344, 159.07582092285156]
+          ],
+          0.1,
+          300
+        )
+      }
+
+      //停止漫游
+      function stopNavigator() {
+        bimfishModeloApp.stopCameraNavigator()
+      }
+
+      //隔离
+      function partElements() {
+        bimfishModeloApp.partElements(['j1mZemYb+0/500480'])
+      }
+
+      //反向隔离
+      function partEnableElements() {
+        bimfishModeloApp.partEnableElements(['j1mZemYb+0/500480'])
+      }
+
+      //阴影效果
+      function shadowButton(visible) {
+        bimfishModeloApp.shadowButton(visible)
+      }
+      function ambientShadow(visible) {
+        bimfishModeloApp.ambientShadow(visible)
+      }
+      function specularShadow(visible) {
+        bimfishModeloApp.specularShadow(visible)
+      }
+      //阴影范围纬度
+      function shadowRange() {
+        let value = 1.0
+        bimfishModeloApp.shadowRange(value)
+      }
+      //阴影范围经度
+      function shadowRangeLong() {
+        let value = 1.0
+        bimfishModeloApp.shadowRangeLong(value)
+      }
+      //阴影亮度
+      function shadowBrightness() {
+        bimfishModeloApp.shadowBrightness(0.5)
+      }
+      //获取材质名称
+      function getMaterialNames() {
+        console.log(bimfishModeloApp.getMaterialNames('j1mZemYb+0/634313'))
+      }
+      //改变材质颜色
+      function changeMaterialColor() {
+        bimfishModeloApp.changeMaterialColor(['j1mZemYb混凝土-现场浇注混凝土C45'], [1, 0, 0])
+      }
+      function test() {
+        bimfishModeloApp.setHighlightEnabled(false)
+        bimfishModeloApp.pickElement(['wrJeaR8j+6/1455593'])
+      }
+      //清除材质颜色
+      function clearMaterialColor() {
+        bimfishModeloApp.clearMaterialColor(['j1mZemYb混凝土-现场浇注混凝土C45'])
+      }
+      //材质贴图
+      function changeMaterialImage() {
+        bimfishModeloApp.changeMaterialImage(['j1mZemYb混凝土砌块'], '../images/texture.jpg')
+      }
+      //清除材质贴图
+      function clearMaterialImage() {
+        bimfishModeloApp.changeMaterialImage(['j1mZemYb混凝土砌块'], null)
+      }
+
+      //设置天空盒
+      function setSkyBox() {
+        let cubemapImages = [
+          'images/skybox/LF-negx.jpg',
+          'images/skybox/DN-negy.jpg',
+          'images/skybox/FR-negz.jpg',
+          'images/skybox/RT-posx.jpg',
+          'images/skybox/UP-posy.jpg',
+          'images/skybox/BK-posz.jpg'
+        ]
+        bimfishModeloApp.setSkyBox(cubemapImages)
+      }
+
+      function setBackgroundColor() {
+        bimfishModeloApp.setBackgroundColor([0, 1, 0])
+      }
+
+      //取消天空盒
+      function clearSkyBox() {
+        bimfishModeloApp.clearSkyBox()
+      }
+
+      //设置构件发光
+      function setElementsGlow() {
+        bimfishModeloApp.setElementsGlow(['j1mZemYb+0/622604', 'j1mZemYb+0/614792'])
+      }
+
+      //清除构件发光
+      function clearElementsGlow() {
+        bimfishModeloApp.clearElementsGlow()
+      }
+
+      //设置反射贴图
+      function setReflectionImages() {
+        let cubemapImages = [
+          'images/skybox/LF-negx.jpg',
+          'images/skybox/DN-negy.jpg',
+          'images/skybox/FR-negz.jpg',
+          'images/skybox/RT-posx.jpg',
+          'images/skybox/UP-posy.jpg',
+          'images/skybox/BK-posz.jpg'
+        ]
+        bimfishModeloApp.setReflectionImages(cubemapImages)
+      }
+
+      //设置透明度
+      function setTransparent() {
+        bimfishModeloApp.setTransparent()
+      }
+
+      //设置轮廓线
+      function setContourLine() {
+        bimfishModeloApp.setContourLine([255, 0, 0])
+      }
+
+      //取消轮廓线
+      function setCoutourLineNone() {
+        bimfishModeloApp.setCoutourLineNone()
+      }
+
+      function getElementCoordinates() {
+        bimfishModeloApp.getElementCoordinates(['j1mZemYb+0/713582'])
+      }
+
+      //设置流动线
+      function setRibbon() {
+        bimfishModeloApp.setRibbon()
+      }
+
+      //清除流动线
+      function clearRibbon() {
+        bimfishModeloApp.clearRibbon()
+      }
+
+      //设置圆
+      function setCircle() {
+        bimfishModeloApp.setCircle()
+      }
+
+      //清除圆
+      function clearCircle() {
+        bimfishModeloApp.clearCircle()
+      }
+
+      //设置条纹线
+      function setAnimatingStripe() {
+        let pathes = {
+          path1: [
+            [38.18899536132812, 2.2801859378814697, 16.108922958374023],
+            [113.18899536132812, 2.2801859378814697, 16.108922958374023],
+            [230.18899536132812, 2.2801859378814697, 16.108922958374023]
+          ],
+          path2: [
+            [38.18899536132812, 2.2801859378814697, 1.108922958374023],
+            [113.18899536132812, 2.2801859378814697, 1.108922958374023],
+            [230.18899536132812, 2.2801859378814697, 1.108922958374023]
+          ],
+          path3: [
+            [38.18899536132812, 2.2801859378814697, 16.108922958374023],
+            [113.18899536132812, 2.2801859378814697, 16.108922958374023],
+            [230.18899536132812, 2.2801859378814697, 16.108922958374023]
+          ],
+          path4: [
+            [38.18899536132812, 2.2801859378814697, 1.108922958374023],
+            [113.18899536132812, 2.2801859378814697, 1.108922958374023],
+            [230.18899536132812, 2.2801859378814697, 1.108922958374023]
+          ]
+        }
+        bimfishModeloApp.setAnimatingStripe(1, pathes, {
+          image: 'images/traffic_02.png'
+        })
+      }
+
+      //删除条纹线
+      function removeAnimatingStripeById() {
+        bimfishModeloApp.removeAnimatingStripeById(1)
+      }
+
+      //清空条纹线
+      function clearAnimatingStripe() {
+        bimfishModeloApp.clearAnimatingStripe()
+      }
+    </script>
+  </body>
+</html>
